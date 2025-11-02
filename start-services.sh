@@ -38,9 +38,22 @@ docker-compose up -d write-api read-api
 echo "Waiting for APIs to be ready..."
 sleep 10
 
-# Start nginx
+# Build and start frontend
+echo "Building frontend..."
+docker-compose up -d --build frontend
+
+# Wait for frontend build to complete
+echo "Waiting for frontend build to complete..."
+sleep 15
+
+# Start nginx gateway (serves frontend and proxies API)
 echo "Starting nginx gateway..."
 docker-compose up -d nginx
 
-echo "All services started! Check logs with: docker-compose logs -f"
-echo "Access the system at: http://localhost:8080"
+echo ""
+echo "========================================"
+echo "All services started successfully!"
+echo "========================================"
+echo "Frontend + API Gateway: http://localhost:8080"
+echo "Check logs with: docker-compose logs -f"
+echo "========================================"

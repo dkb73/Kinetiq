@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 // Base URL for the API (nginx gateway)
-const API_BASE_URL = 'http://localhost:8080';
+// In production, use empty string for same-origin requests
+// In dev mode, Vite will replace import.meta.env.DEV with false
+const API_BASE_URL = import.meta.env.DEV === true ? 'http://localhost:8080' : '';
 
 // Create axios instance with default config
 const api = axios.create({

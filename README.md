@@ -50,8 +50,9 @@ graph TD
 
 ### Prerequisites
 
-- Docker Desktop installed and running.
-- Git installed.
+- Docker Desktop installed and running
+- Git installed
+- **No need to install Node.js** - everything runs in containers!
 
 ### 1. Clone & Navigate
 
@@ -62,32 +63,59 @@ cd distributed-ticket-system
 
 ### 2. Start the System
 
-The startup script handles database initialization and starts all services in the correct order.
+The startup script builds the frontend, initializes databases, and starts all services in the correct order.
 
-On Windows (PowerShell):
+**On Windows (PowerShell):**
 
 ```bash
 .\start-services.bat
 ```
 
-On Linux/macOS:
+**On Linux/macOS:**
 
 ```bash
 chmod +x start-services.sh
 ./start-services.sh
 ```
 
-This process will take a few minutes on the first run as it downloads and builds all the necessary container images.
+This process will take a few minutes on the first run as it:
+- Downloads all necessary Docker images
+- Builds the React frontend
+- Initializes databases
+- Starts all microservices
 
-### 3. Verify
+### 3. Access the Application
 
-After the script completes, check that all services are healthy:
+Once the script completes, open your browser:
+
+**🌐 http://localhost:8080**
+
+You'll see the React frontend with the event booking interface. The same URL handles both:
+- **Frontend**: Static React app served by NGINX
+- **API Requests**: Proxied to backend microservices
+
+### 4. Verify
+
+Check that all services are healthy:
 
 ```bash
 docker-compose ps
 ```
 
 All services should have a STATUS of `Up` or `running (healthy)`.
+
+**Expected services:**
+- ✅ `frontend` - React app builder
+- ✅ `nginx` - Gateway serving frontend + API proxy
+- ✅ `write-api` - Booking request handler
+- ✅ `read-api` - Event data queries
+- ✅ `worker` - Background booking processor
+- ✅ `data-sync-service` - DB synchronization
+- ✅ `postgres` - Write database
+- ✅ `mongo` - Read database
+- ✅ `redis` - Distributed locking
+- ✅ `kafka` - Message queue
+- ✅ `zookeeper` - Kafka coordination
 
 ## 📡 API Usage (via Gateway)
 
@@ -218,10 +246,65 @@ After running these commands, your Docker environment will be completely clean, 
 
 | Category        | Technology                | Purpose                                                                 |
 |-----------------|---------------------------|-------------------------------------------------------------------------|
+| Frontend        | React, Vite               | Modern, fast UI with hot module replacement in dev mode.                |
 | Backend         | Node.js, Express.js       | Core application logic and API development.                             |
 | Databases       | PostgreSQL, MongoDB       | Polyglot Persistence: Postgres for transactional integrity (Write), MongoDB for fast, scalable reads (Read). |
 | Caching/Locking | Redis                     | High-performance distributed locking to prevent race conditions.        |
 | Messaging       | Apache Kafka              | Asynchronous message queue for decoupling services and ensuring fault tolerance. |
 | Orchestration   | Docker, Docker Compose    | Containerizing all services for consistent, portable, one-command deployment. |
-| API Gateway     | NGINX                     | Single entry point for all incoming requests, routing to the appropriate microservice. |
+| API Gateway     | NGINX                     | Single entry point serving frontend static files and proxying API requests. |
+
+## 📚 Additional Documentation
+
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Comprehensive guide for deploying to AWS (EC2, ECS, EKS)
+- **Architecture**: See the Mermaid diagram above
+- **API Documentation**: See API Usage section above
+
+## 🚢 Production Deployment
+
+This application is **production-ready** with:
+- ✅ Frontend built and served as static files (no `npm run dev` needed)
+- ✅ NGINX gateway handling all traffic on a single port
+- ✅ Multi-stage Docker builds for optimized images
+- ✅ Proper MIME types and caching headers
+- ✅ CORS configured for API access
+- ✅ Health checks for all services
+
+See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for AWS deployment strategies.
+
+## 🔄 Development Workflow
+
+### Making Frontend Changes
+
+1. Edit files in `./frontend/src/`
+2. Rebuild the frontend:
+   ```bash
+   docker-compose up -d --build frontend
+   ```
+3. Wait ~15 seconds for build to complete
+4. Refresh browser at http://localhost:8080
+
+### Making Backend Changes
+
+1. Edit files in respective service directories
+2. Rebuild the service:
+   ```bash
+   docker-compose up -d --build <service-name>
+   ```
+3. Check logs:
+   ```bash
+   docker-compose logs -f <service-name>
+   ```
+
+### Viewing Logs
+
+```bash
+# All services
+docker-compose logs -f
+
+# Specific service
+docker-compose logs -f frontend
+docker-compose logs -f nginx
+docker-compose logs -f write-api
+```
 
